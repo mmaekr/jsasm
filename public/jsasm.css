@@ -1,0 +1,36 @@
+body {
+	height:100vh;
+}
+
+.asm:focus {
+	border-color: #d18274;
+	box-shadow: 0 0 0 0.2rem rgba(209, 130, 116, 0.25);
+}
+
+.diasm:focus {
+	border-color: #8eaceb;
+	box-shadow: 0 0 0 0.2rem rgba(142, 172, 235, 0.25);
+}
+
+.content {
+	height: 70%;
+}
+
+.m-height {
+	height: 100%;
+}
+
+.jsasm-input {
+	height: 95% !important;
+}
+
+textarea {
+	resize: none;
+	font-family: monospace;
+	font-size:18px !important;
+	height: 90% !important;
+}
+
+.credit {
+	color: #fff;
+}

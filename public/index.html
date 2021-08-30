@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
+		<title>jsasm</title>
+		<link rel="icon" type="image/png" href="/favicon.ico" />
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<script src="keystone.min.js"></script>
+		<script src="capstone.min.js"></script>
+		<link href="jsasm.css" rel="stylesheet">
+	</head>
+
+	<body class="bg-dark">
+		<div class="text-light text-center p-2">
+			<h1>jsasm</h1>
+			<h4>assembler and disassembler in javascript</h4>
+		</div>
+		<div class="container">
+			<div class="row">
+				<div class="col-2"></div>
+				<div class="col-8 d-flex justify-content-center">
+					<div class="btn-group">
+						<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="architecture-btn"> Architecture </button>
+						<ul class="dropdown-menu" id="architecture">
+							<h6 class="dropdown-header">64 bit</h6>
+							<li> <a class="dropdown-item" id="x86_64" href="#">x86_64</a> </li>
+							<li> <a class="dropdown-item" id="AArch64" href="#">AArch64</a> </li>
+							<li> <a class="dropdown-item" id="MIPS64" href="#">MIPS</a> </li>
+							<li> <a class="dropdown-item" id="PowerPC64" href="#">PowerPC</a> </li>
+							<li>
+								<hr class="dropdown-divider"> </li>
+							<h6 class="dropdown-header">32 bit</h6>
+							<li> <a class="dropdown-item" id="x86" href="#">x86</a> </li>
+							<li> <a class="dropdown-item" id="ARM" href="#">ARM</a> </li>
+							<li> <a class="dropdown-item" id="MIPS32" href="#">MIPS</a> </li>
+							<li> <a class="dropdown-item" id="PowerPC32" href="#">PowerPC</a> </li>
+						</ul>
+					</div>
+				</div>
+				<div class="col-2"></div>
+			</div>
+		</div>
+		<div class="text-light text-center p-3">
+			<h6 id="status">initialized</h6>
+		</div>
+		<div class="container mx-auto content">
+			<div class="row m-height">
+				<div class="col-md-6">
+					<div class="my-3 p-3 bg-white rounded shadow-sm jsasm-input">
+						<div class="form-group m-height">
+							<label for="assembly">Assembly</label>
+							<textarea class="form-control asm form-control-lg" spellcheck="false" id="assembly" oninput="assemble()"></textarea>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="my-3 p-3 bg-white rounded shadow-sm jsasm-input">
+						<div class="form-group m-height">
+							<label for="machine-code">Machine Code</label>
+							<textarea class="form-control diasm form-control-lg" spellcheck="false" id="machine_code" oninput="disassemble()"></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+		<script>
+		var architecture_field = document.getElementById('architecture');
+		var architecture_btn_field = document.getElementById('architecture-btn');
+		var assembly_field = document.getElementById('assembly');
+		var machine_code_field = document.getElementById('machine_code');
+		var status_field = document.getElementById('status');
+
+		var kst = new ks.Keystone(ks.ARCH_X86, ks.MODE_64);
+		var cst = new cs.Capstone(cs.ARCH_X86, cs.MODE_64);
+		kst.option(ks.OPT_SYNTAX, ks.OPT_SYNTAX_INTEL);
+		architecture_btn_field.textContent = "x86_64";
+
+		// This removes delay from assembly field o_O
+		kst.asm("nop");
+
+		const initializeKeystone = (arch, mode) => {
+			kst.close();
+			kst = new ks.Keystone(arch, mode);
+		}
+		const initializeCapstone = (arch, mode) => {
+			try {
+				cst.close();
+			} catch {}
+			cst = new cs.Capstone(arch, mode);
+		}
+		const fromHexString = hexString => new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+		const toHexString = bytes => bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+
+		architecture_field.addEventListener('click', (event) => {
+			ks_arch = ks.ARCH_X86;
+			ks_mode = ks.MODE_64;
+			cs_arch = cs.ARCH_X86;
+			cs_mode = cs.MODE_64;
+			arch_text = architecture_btn_field.textContent;
+			switch(event.srcElement.id) {
+				case 'x86_64':
+					ks_arch = ks.ARCH_X86;
+					ks_mode = ks.MODE_64;
+					cs_arch = cs.ARCH_X86;
+					cs_mode = cs.MODE_64;
+					arch_text = "x86_64";
+					break;
+				case 'AArch64':
+					ks_arch = ks.ARCH_ARM64;
+					ks_mode = ks.MODE_LITTLE_ENDIAN;
+					cs_arch = cs.ARCH_ARM64;
+					cs_mode = cs.MODE_ARM;
+					arch_text = "AArch64";
+					break;
+				case 'MIPS64':
+					ks_arch = ks.ARCH_MIPS;
+					ks_mode = ks.MODE_64;
+					cs_arch = cs.ARCH_MIPS;
+					cs_mode = cs.MODE_64;
+					arch_text = "MIPS";
+					break;
+				case 'PowerPC64':
+					ks_arch = ks.ARCH_PPC;
+					ks_mode = ks.MODE_PPC64;
+					cs_arch = cs.ARCH_PPC;
+					cs_mode = cs.MODE_64;
+					arch_text = "PowerPC 64";
+					break;
+				case 'x86':
+					ks_arch = ks.ARCH_X86;
+					ks_mode = ks.MODE_32;
+					cs_arch = cs.ARCH_X86;
+					cs_mode = cs.MODE_32;
+					arch_text = "x86";
+					break;
+				case 'ARM':
+					ks_arch = ks.ARCH_ARM;
+					ks_mode = ks.MODE_ARM;
+					cs_arch = cs.ARCH_ARM;
+					cs_mode = cs.MODE_ARM;
+					arch_text = "ARM";
+					break;
+				case 'MIPS32':
+					ks_arch = ks.ARCH_MIPS;
+					ks_mode = ks.MODE_MIPS32;
+					cs_arch = cs.ARCH_MIPS;
+					cs_mode = cs.MODE_MIPS32;
+					arch_text = "MIPS";
+					break;
+				case 'PowerPC32':
+					ks_arch = ks.ARCH_PPC;
+					ks_mode = ks.MODE_PPC32 + ks.MODE_BIG_ENDIAN;
+					cs_arch = cs.ARCH_PPC;
+					cs_mode = cs.MODE_32;
+					arch_text = "PowerPC";
+					break;
+			}
+
+			initializeKeystone(ks_arch, ks_mode);
+			initializeCapstone(cs_arch, cs_mode);
+			architecture_btn_field.textContent = arch_text;
+			assemble();
+		});
+
+		function assemble(event) {
+			machine_code_field.value = "";
+			var assembly = assembly_field.value.split('\n');
+			var machine_code = "";
+			for(var i = 0; i < assembly.length; i++) {
+				try {
+					machine_code += toHexString(kst.asm(assembly[i])) + "\n";
+					status_field.innerHTML = "success";
+				} catch(e) {
+					var error_msg = e.split(":")[2].split(" (")[0].toLowerCase();
+					status_field.innerHTML = error_msg;
+				}
+			}
+			machine_code_field.value = machine_code
+		};
+
+		function disassemble(event) {
+			assembly_field.value = "";
+			assembly = "";
+			machine_code = machine_code_field.value;
+			try {
+				var result = cst.disasm(fromHexString(machine_code));
+				var assembly_string = "";
+				for(var i = 0; i < result.length; i++) {
+					assembly += result[i].mnemonic + " " + result[i].op_str + "\n";
+				}
+			} catch {}
+			assembly_field.value = assembly;
+		};
+		</script>
+	<footer>
+		<div class="container text-center p-3">
+			<p class="text-muted credit">made by <a href="https://twitter.com/mmaekr">mmaekr</a>, inspired by <a href="https://github.com/ret2jazzy/disasm.pro">disasm.pro</a>, source available on <a href="https://github.com/mmaekr/jsasm">github</a></p>
+		</div>
+	</footer>
+	</body>
+</html>
