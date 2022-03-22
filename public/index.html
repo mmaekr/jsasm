@@ -8,11 +8,58 @@
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 		<script src="keystone.min.js"></script>
 		<script src="capstone.min.js"></script>
-		<link href="jsasm.css" rel="stylesheet">
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+		<style>
+			body {
+				height: 100vh;
+			}
+
+			.asm:focus {
+				border-color: #d18274;
+				box-shadow: 0 0 0 0.2rem rgba(209, 130, 116, 0.25);
+			}
+
+			.disasm:focus {
+				border-color: #8eaceb;
+				box-shadow: 0 0 0 0.2rem rgba(142, 172, 235, 0.25);
+			}
+
+			.content {
+				height: 70%;
+				width: 90%;
+			}
+
+			.m-height {
+				height: 100%;
+			}
+
+			.jsasm-input {
+				height: 95% !important;
+			}
+
+			textarea {
+				resize: none;
+				height: 100% !important;
+				width: 100% !important;
+				font-family: monospace;
+				font-size: 18px !important;
+				box-sizing: border-box;
+			}
+
+			.about {
+				padding: 20px !important;
+			}
+
+			.credit {
+				color: #fff;
+			}
+		</style>
+
+
 	</head>
 
 	<body class="bg-dark">
-		<div class="text-light text-center p-2">
+		<div class="about text-light text-center p-2">
 			<h1>jsasm</h1>
 			<h4>assembler and disassembler in javascript</h4>
 		</div>
@@ -24,17 +71,17 @@
 						<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="architecture-btn"> Architecture </button>
 						<ul class="dropdown-menu" id="architecture">
 							<h6 class="dropdown-header">64 bit</h6>
-							<li> <a class="dropdown-item" id="x86_64" href="#">x86_64</a> </li>
-							<li> <a class="dropdown-item" id="AArch64" href="#">AArch64</a> </li>
-							<li> <a class="dropdown-item" id="MIPS64" href="#">MIPS</a> </li>
-							<li> <a class="dropdown-item" id="PowerPC64" href="#">PowerPC</a> </li>
+							<li><a class="dropdown-item" id="x86_64">x86_64</a></li>
+							<li><a class="dropdown-item" id="AArch64">AArch64</a></li>
+							<li><a class="dropdown-item" id="MIPS64">MIPS</a></li>
+							<li><a class="dropdown-item" id="PowerPC64">PowerPC</a></li>
 							<li>
-								<hr class="dropdown-divider"> </li>
+								<hr class="dropdown-divider"></li>
 							<h6 class="dropdown-header">32 bit</h6>
-							<li> <a class="dropdown-item" id="x86" href="#">x86</a> </li>
-							<li> <a class="dropdown-item" id="ARM" href="#">ARM</a> </li>
-							<li> <a class="dropdown-item" id="MIPS32" href="#">MIPS</a> </li>
-							<li> <a class="dropdown-item" id="PowerPC32" href="#">PowerPC</a> </li>
+							<li><a class="dropdown-item" id="x86">x86</a></li>
+							<li><a class="dropdown-item" id="ARM">ARM</a></li>
+							<li><a class="dropdown-item" id="MIPS32">MIPS</a></li>
+							<li><a class="dropdown-item" id="PowerPC32">PowerPC</a></li>
 						</ul>
 					</div>
 				</div>
@@ -49,28 +96,27 @@
 				<div class="col-md-6">
 					<div class="my-3 p-3 bg-white rounded shadow-sm jsasm-input">
 						<div class="form-group m-height">
-							<label for="assembly">Assembly</label>
-							<textarea class="form-control asm form-control-lg" spellcheck="false" id="assembly" oninput="assemble()"></textarea>
+							<textarea class="asm form-control" spellcheck="false" id="assembly" oninput="assemble()"></textarea>
 						</div>
 					</div>
 				</div>
 				<div class="col-md-6">
 					<div class="my-3 p-3 bg-white rounded shadow-sm jsasm-input">
 						<div class="form-group m-height">
-							<label for="machine-code">Machine Code</label>
-							<textarea class="form-control diasm form-control-lg" spellcheck="false" id="machine_code" oninput="disassemble()"></textarea>
+							<textarea class="disasm form-control" spellcheck="false" id="machine_code" oninput="disassemble()"></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
 		<script>
 		var architecture_field = document.getElementById('architecture');
 		var architecture_btn_field = document.getElementById('architecture-btn');
 		var assembly_field = document.getElementById('assembly');
 		var machine_code_field = document.getElementById('machine_code');
 		var status_field = document.getElementById('status');
+
+		// TODO steal fizzbuzz's shellcode
 
 		var kst = new ks.Keystone(ks.ARCH_X86, ks.MODE_64);
 		var cst = new cs.Capstone(cs.ARCH_X86, cs.MODE_64);
